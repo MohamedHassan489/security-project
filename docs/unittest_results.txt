@@ -1,0 +1,28 @@
+test_constant_time_check_sanity (test_auth.AuthTests.test_constant_time_check_sanity) ... ok
+test_register_and_verify_happy_path (test_auth.AuthTests.test_register_and_verify_happy_path) ... ok
+test_wrong_password_fails (test_auth.AuthTests.test_wrong_password_fails) ... ok
+test_aes_cbc_round_trip (test_block_cipher.BlockCipherTests.test_aes_cbc_round_trip) ... ok
+test_aes_gcm_rejects_tampered_aad (test_block_cipher.BlockCipherTests.test_aes_gcm_rejects_tampered_aad) ... ok
+test_aes_gcm_rejects_tampered_ciphertext (test_block_cipher.BlockCipherTests.test_aes_gcm_rejects_tampered_ciphertext) ... ok
+test_aes_gcm_rejects_tampered_tag (test_block_cipher.BlockCipherTests.test_aes_gcm_rejects_tampered_tag) ... ok
+test_aes_gcm_round_trip_for_supported_key_sizes (test_block_cipher.BlockCipherTests.test_aes_gcm_round_trip_for_supported_key_sizes) ... ok
+test_spec_worker_bridge_encrypts (test_block_cipher.BlockCipherTests.test_spec_worker_bridge_encrypts) ... ok
+test_file_hash_matches_hashlib (test_hashing.HashingTests.test_file_hash_matches_hashlib) ... ok
+test_hmac_rfc_4231_vector (test_hashing.HashingTests.test_hmac_rfc_4231_vector) ... ok
+test_sha256_known_answer (test_hashing.HashingTests.test_sha256_known_answer) ... ok
+test_end_to_end_message_delivery_without_plaintext_on_wire (test_integration.IntegrationTests.test_end_to_end_message_delivery_without_plaintext_on_wire) ... ok
+test_tampering_causes_disconnect (test_integration.IntegrationTests.test_tampering_causes_disconnect) ... ok
+test_save_and_load_with_correct_passphrase (test_keystore.KeystoreTests.test_save_and_load_with_correct_passphrase) ... ok
+test_tampered_file_raises (test_keystore.KeystoreTests.test_tampered_file_raises) ... ok
+test_wrong_passphrase_raises (test_keystore.KeystoreTests.test_wrong_passphrase_raises) ... ok
+test_frame_round_trip (test_protocol.ProtocolTests.test_frame_round_trip) ... ok
+test_replay_is_rejected (test_protocol.ProtocolTests.test_replay_is_rejected) ... ok
+test_truncated_frame_raises (test_protocol.ProtocolTests.test_truncated_frame_raises) ... ok
+test_key_serialization_with_passphrase (test_public_key.PublicKeyTests.test_key_serialization_with_passphrase) ... ok
+test_oaep_round_trip (test_public_key.PublicKeyTests.test_oaep_round_trip) ... ok
+test_pss_sign_and_verify (test_public_key.PublicKeyTests.test_pss_sign_and_verify) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 4.779s
+
+OK

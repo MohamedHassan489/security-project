@@ -1,0 +1,15 @@
+{
+  "aes": {
+    "elapsed_seconds": 0.7148689160021604,
+    "encrypt_decrypt_mb_per_s": 89.52690285921815,
+    "iterations": 64,
+    "payload_bytes": 1048576
+  },
+  "rsa": {
+    "iterations": 50,
+    "rsa_decrypt_ops_per_s": 47.18254170452778,
+    "rsa_encrypt_ops_per_s": 3180.8301291294206,
+    "rsa_sign_ops_per_s": 46.85298278806089,
+    "rsa_verify_ops_per_s": 3322.314324182674
+  }
+}
