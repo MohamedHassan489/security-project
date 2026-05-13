@@ -106,9 +106,12 @@ class SecureClient:
             raise ValueError(payload["error"])
         messages = payload["messages"]
         for msg in messages:
-            expected = msg.get("sha256", "")
-            actual = sha256_bytes(msg["text"].encode("utf-8"))
-            msg["integrity"] = "verified" if actual == expected else "TAMPERED"
+            expected = msg.get("sha256")
+            if expected is None:
+                msg["integrity"] = "no hash"
+            else:
+                actual = sha256_bytes(msg["text"].encode("utf-8"))
+                msg["integrity"] = "verified" if actual == expected else "TAMPERED"
         return messages
 
     def logout(self) -> dict:

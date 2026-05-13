@@ -10,21 +10,25 @@ from tkinter import messagebox, ttk
 from secure_suite.net.client import SecureClient
 
 
-BG_MAIN       = "#f0f2f5"
-BG_HEADER     = "#1a73e8"
-BG_CARD       = "#ffffff"
-BG_INPUT      = "#e8eaed"
-COLOR_SENT    = "#1a73e8"
-COLOR_RECV    = "#202124"
-COLOR_OK      = "#188038"
-COLOR_TAMPER  = "#d93025"
-COLOR_MUTED   = "#80868b"
-FONT          = ("Segoe UI", 11)
-FONT_BOLD     = ("Segoe UI", 11, "bold")
-FONT_TITLE    = ("Segoe UI", 18, "bold")
-FONT_HEADER   = ("Segoe UI", 12, "bold")
-FONT_MONO     = ("Consolas", 10)
-FONT_ITALIC   = ("Segoe UI", 10, "italic")
+# Warm, eye-comfortable palette
+BG_MAIN       = "#ECE5DD"   # warm parchment
+BG_HEADER     = "#075E54"   # deep teal
+BG_HEADER2    = "#128C7E"   # medium teal (accents)
+BG_SIDEBAR    = "#F7F3EE"   # warm cream
+BG_CARD       = "#FFFFFF"
+BG_INPUT      = "#F0F0F0"
+BG_SENT       = "#DCF8C6"   # soft green bubble
+BG_RECV       = "#FFFFFF"   # white bubble
+COLOR_MUTED   = "#8696A0"   # warm grey
+COLOR_OK      = "#53BDEB"   # light blue tick
+COLOR_TAMPER  = "#C0392B"   # muted red
+
+FONT          = ("Segoe UI", 9)
+FONT_BOLD     = ("Segoe UI", 9, "bold")
+FONT_TITLE    = ("Segoe UI", 15, "bold")
+FONT_HEADER   = ("Segoe UI", 10, "bold")
+FONT_MONO     = ("Segoe UI", 7)
+FONT_ITALIC   = ("Segoe UI", 8, "italic")
 
 
 class SecureChatGUI:
@@ -35,17 +39,17 @@ class SecureChatGUI:
         self.client.connect()
 
         self.root = tk.Tk()
-        self.root.title("Secure Communication Suite")
-        self.root.geometry("1100x700")
-        self.root.minsize(800, 560)
-        self.root.state("zoomed")
+        self.root.title("Secure Chat")
+        self.root.geometry("390x780")
+        self.root.minsize(360, 640)
+        self.root.resizable(False, False)
         self.root.configure(bg=BG_MAIN)
 
-        self.username_var  = tk.StringVar()
-        self.password_var  = tk.StringVar()
-        self.recipient_var = tk.StringVar()
-        self.message_var   = tk.StringVar()
-        self.status_var    = tk.StringVar(value="Connected")
+        self.username_var    = tk.StringVar()
+        self.password_var    = tk.StringVar()
+        self.recipient_var   = tk.StringVar()
+        self.new_contact_var = tk.StringVar()
+        self.status_var      = tk.StringVar(value="  Connected")
         self.known_recipients: list[str] = []
 
         self._build_login()
@@ -53,117 +57,184 @@ class SecureChatGUI:
         self.show_login()
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
-    # ── Login screen ─────────────────────────────────────────────────────────
+    # ── Login ─────────────────────────────────────────────────────────────────
 
     def _build_login(self) -> None:
         self.login_frame = tk.Frame(self.root, bg=BG_MAIN)
 
-        card = tk.Frame(self.login_frame, bg=BG_CARD, padx=44, pady=36)
+        card = tk.Frame(self.login_frame, bg=BG_CARD, padx=36, pady=36)
         card.place(relx=0.5, rely=0.5, anchor="center")
 
-        tk.Label(card, text="Secure Chat", font=FONT_TITLE,
+        # Title
+        tk.Label(card, text="SecureChat", font=FONT_TITLE,
                  bg=BG_CARD, fg=BG_HEADER).grid(
-            row=0, column=0, columnspan=2, pady=(0, 6))
-        tk.Label(card, text="End-to-end encrypted messaging",
-                 font=FONT_ITALIC, bg=BG_CARD, fg=COLOR_MUTED).grid(
-            row=1, column=0, columnspan=2, pady=(0, 24))
+            row=0, column=0, columnspan=2, pady=(0, 4))
+        tk.Label(card, text="End-to-end encrypted", font=FONT_ITALIC,
+                 bg=BG_CARD, fg=COLOR_MUTED).grid(
+            row=1, column=0, columnspan=2, pady=(0, 26))
 
+        # Fields
         for row, label, var, kw in [
             (2, "Username", self.username_var, {}),
             (4, "Password", self.password_var, {"show": "●"}),
         ]:
             tk.Label(card, text=label, font=FONT, bg=BG_CARD,
-                     fg="#5f6368").grid(row=row, column=0, columnspan=2,
-                                        sticky="w", pady=(0, 2))
-            e = ttk.Entry(card, textvariable=var, width=30, **kw)
+                     fg="#555").grid(row=row, column=0, columnspan=2,
+                                     sticky="w", pady=(0, 2))
+            e = ttk.Entry(card, textvariable=var, width=28, **kw)
             e.grid(row=row + 1, column=0, columnspan=2, sticky="ew",
-                   pady=(0, 14), ipady=5)
+                   pady=(0, 14), ipady=6)
             if row == 2:
                 self.username_entry = e
             else:
                 self.password_entry = e
 
-        btn_row = tk.Frame(card, bg=BG_CARD)
-        btn_row.grid(row=6, column=0, columnspan=2, sticky="ew", pady=(6, 0))
+        # Buttons
+        row_btns = tk.Frame(card, bg=BG_CARD)
+        row_btns.grid(row=6, column=0, columnspan=2, sticky="ew", pady=(4, 0))
 
-        tk.Button(btn_row, text="Login", command=self.login,
+        tk.Button(row_btns, text="Login", command=self.login,
                   bg=BG_HEADER, fg="white", font=FONT_BOLD,
-                  relief="flat", cursor="hand2", padx=24, pady=7).pack(
-            side="left", expand=True, fill="x", padx=(0, 6))
+                  relief="flat", cursor="hand2", pady=8).pack(
+            side="left", expand=True, fill="x", padx=(0, 5))
 
-        tk.Button(btn_row, text="Register", command=self.register,
-                  bg=BG_CARD, fg=BG_HEADER, font=FONT_BOLD,
-                  relief="solid", bd=1, cursor="hand2", padx=24, pady=7).pack(
-            side="left", expand=True, fill="x", padx=(6, 0))
+        tk.Button(row_btns, text="Register", command=self.register,
+                  bg=BG_HEADER2, fg="white", font=FONT_BOLD,
+                  relief="flat", cursor="hand2", pady=8).pack(
+            side="left", expand=True, fill="x", padx=(5, 0))
 
         self.username_entry.bind("<Return>", lambda _: self.password_entry.focus())
         self.password_entry.bind("<Return>", lambda _: self.login())
 
-    # ── Chat screen ───────────────────────────────────────────────────────────
+    # ── Chat ──────────────────────────────────────────────────────────────────
 
     def _build_chat(self) -> None:
         self.chat_frame = tk.Frame(self.root, bg=BG_MAIN)
 
         # Header
-        header = tk.Frame(self.chat_frame, bg=BG_HEADER, pady=10, padx=16)
+        header = tk.Frame(self.chat_frame, bg=BG_HEADER, pady=11, padx=14)
         header.pack(fill="x")
-        self.header_label = tk.Label(header, text="", font=FONT_HEADER,
-                                     bg=BG_HEADER, fg="white")
+        self.header_label = tk.Label(
+            header, text="", font=FONT_HEADER, bg=BG_HEADER, fg="white")
         self.header_label.pack(side="left")
         tk.Button(header, text="Logout", command=self.logout,
-                  bg="white", fg=BG_HEADER, font=FONT_BOLD,
-                  relief="flat", cursor="hand2", padx=12, pady=3).pack(side="right")
+                  bg=BG_HEADER2, fg="white", font=FONT,
+                  relief="flat", cursor="hand2", padx=10, pady=2).pack(side="right")
+
+        # Body
+        body = tk.Frame(self.chat_frame, bg=BG_MAIN)
+        body.pack(fill="both", expand=True)
+
+        # ── Sidebar ──────────────────────────────────────────────────────────
+        sidebar = tk.Frame(body, bg=BG_SIDEBAR, width=105)
+        sidebar.pack(side="left", fill="y")
+        sidebar.pack_propagate(False)
+
+        tk.Label(sidebar, text="Contacts", font=FONT_BOLD,
+                 bg=BG_SIDEBAR, fg=BG_HEADER, pady=9).pack(fill="x", padx=10)
+
+        tk.Frame(sidebar, bg="#D0CCC8", height=1).pack(fill="x")
+
+        self.contacts_box = tk.Listbox(
+            sidebar, font=FONT, relief="flat", bd=0,
+            bg=BG_SIDEBAR, fg="#303030",
+            selectbackground=BG_HEADER2, selectforeground="white",
+            activestyle="none", cursor="hand2",
+            highlightthickness=0,
+        )
+        self.contacts_box.pack(fill="both", expand=True, padx=4, pady=6)
+        self.contacts_box.bind("<<ListboxSelect>>", self._on_contact_select)
+
+        tk.Frame(sidebar, bg="#D0CCC8", height=1).pack(fill="x")
+
+        add_frame = tk.Frame(sidebar, bg=BG_SIDEBAR, padx=6, pady=7)
+        add_frame.pack(fill="x")
+        new_entry = ttk.Entry(add_frame, textvariable=self.new_contact_var, font=FONT)
+        new_entry.pack(fill="x", ipady=3, pady=(0, 5))
+        new_entry.bind("<Return>", lambda _: self._add_contact())
+        tk.Button(add_frame, text="+ Add", command=self._add_contact,
+                  bg=BG_HEADER, fg="white", font=FONT,
+                  relief="flat", cursor="hand2", pady=3).pack(fill="x")
+
+        # ── Main area ────────────────────────────────────────────────────────
+        main = tk.Frame(body, bg=BG_MAIN)
+        main.pack(side="left", fill="both", expand=True)
 
         # Message history
-        hist_frame = tk.Frame(self.chat_frame, bg=BG_MAIN, padx=16, pady=12)
-        hist_frame.pack(fill="both", expand=True)
+        hist_wrap = tk.Frame(main, bg=BG_MAIN, padx=6, pady=6)
+        hist_wrap.pack(fill="both", expand=True)
 
-        scrollbar = ttk.Scrollbar(hist_frame)
-        scrollbar.pack(side="right", fill="y")
+        sb = ttk.Scrollbar(hist_wrap)
+        sb.pack(side="right", fill="y")
 
         self.history = tk.Text(
-            hist_frame, state="disabled", wrap="word",
-            font=FONT, bg="white", relief="flat",
-            yscrollcommand=scrollbar.set,
-            padx=12, pady=10, spacing1=2, spacing3=5,
+            hist_wrap, state="disabled", wrap="word",
+            font=FONT, bg=BG_MAIN, relief="flat",
+            yscrollcommand=sb.set, bd=0,
+            padx=4, pady=6, spacing1=2, spacing3=2,
         )
         self.history.pack(fill="both", expand=True)
-        scrollbar.config(command=self.history.yview)
+        sb.config(command=self.history.yview)
 
-        self.history.tag_config("sent",    foreground=BG_HEADER,   font=FONT_BOLD)
-        self.history.tag_config("recv",    foreground=COLOR_RECV,   font=FONT_BOLD)
-        self.history.tag_config("ok",      foreground=COLOR_OK)
-        self.history.tag_config("tamper",  foreground=COLOR_TAMPER, font=FONT_BOLD)
-        self.history.tag_config("time",    foreground=COLOR_MUTED,  font=FONT_MONO)
-        self.history.tag_config("system",  foreground=COLOR_MUTED,  font=FONT_ITALIC)
-
-        # Input bar
-        input_bar = tk.Frame(self.chat_frame, bg=BG_INPUT, padx=16, pady=14)
-        input_bar.pack(fill="x")
-
-        tk.Label(input_bar, text="To:", font=FONT,
-                 bg=BG_INPUT, fg="#5f6368").grid(row=0, column=0, padx=(0, 4))
-
-        self.recipient_combo = ttk.Combobox(
-            input_bar, textvariable=self.recipient_var,
-            values=self.known_recipients, width=14, font=FONT,
+        # Bubble tags
+        self.history.tag_config(
+            "sent_bubble", background=BG_SENT,
+            lmargin1=40, lmargin2=40, rmargin=4,
+            spacing1=5, spacing3=5,
         )
-        self.recipient_combo.grid(row=0, column=1, padx=(0, 10))
+        self.history.tag_config(
+            "recv_bubble", background=BG_RECV,
+            lmargin1=4, lmargin2=4, rmargin=40,
+            spacing1=5, spacing3=5,
+        )
+        self.history.tag_config("sent_name",
+            foreground=BG_HEADER2, font=FONT_BOLD, background=BG_SENT)
+        self.history.tag_config("recv_name",
+            foreground=BG_HEADER, font=FONT_BOLD, background=BG_RECV)
+        self.history.tag_config("time_sent",
+            foreground=COLOR_MUTED, font=FONT_MONO, background=BG_SENT)
+        self.history.tag_config("time_recv",
+            foreground=COLOR_MUTED, font=FONT_MONO, background=BG_RECV)
+        self.history.tag_config("ok",
+            foreground=COLOR_OK, background=BG_SENT)
+        self.history.tag_config("tamper",
+            foreground=COLOR_TAMPER, font=FONT_BOLD, background=BG_RECV)
+        self.history.tag_config("system",
+            foreground=COLOR_MUTED, font=FONT_ITALIC, justify="center")
 
-        self.message_entry = ttk.Entry(input_bar, textvariable=self.message_var, font=FONT)
-        self.message_entry.grid(row=0, column=2, sticky="ew", padx=(0, 10))
-        self.message_entry.bind("<Return>", lambda _: self.send_message())
+        # Input area
+        input_wrap = tk.Frame(main, bg=BG_INPUT, padx=8, pady=8)
+        input_wrap.pack(fill="x", pady=(0, 18))
 
-        tk.Button(input_bar, text="Send  ➤", command=self.send_message,
+        self.recipient_label = tk.Label(
+            input_wrap, text="Select a contact →", font=FONT_ITALIC,
+            bg=BG_INPUT, fg=COLOR_MUTED, anchor="w")
+        self.recipient_label.grid(
+            row=0, column=0, columnspan=2, sticky="w", pady=(0, 5))
+
+        msg_wrap = tk.Frame(input_wrap, bg=BG_INPUT)
+        msg_wrap.grid(row=1, column=0, sticky="ew", padx=(0, 8))
+
+        self.message_box = tk.Text(
+            msg_wrap, font=FONT, height=2, wrap="word",
+            relief="solid", bd=1, padx=7, pady=5,
+            bg="#FAFAFA",
+        )
+        self.message_box.pack(fill="both", expand=True)
+        self.message_box.bind("<Return>", self._on_enter)
+        self.message_box.bind("<Shift-Return>", lambda e: None)
+
+        tk.Button(input_wrap, text="Send\n➤", command=self.send_message,
                   bg=BG_HEADER, fg="white", font=FONT_BOLD,
-                  relief="flat", cursor="hand2", padx=14, pady=5).grid(row=0, column=3)
+                  relief="flat", cursor="hand2",
+                  width=5, pady=8).grid(row=1, column=1, sticky="nsew")
 
-        input_bar.columnconfigure(2, weight=1)
+        input_wrap.columnconfigure(0, weight=1)
 
         # Status bar
         tk.Label(self.chat_frame, textvariable=self.status_var,
-                 font=("Segoe UI", 8), bg="#dadce0", fg=COLOR_MUTED,
-                 anchor="w", padx=10, pady=3).pack(fill="x")
+                 font=("Segoe UI", 7), bg="#D0CCC8", fg=COLOR_MUTED,
+                 anchor="w", pady=3).pack(fill="x")
 
     # ── Navigation ────────────────────────────────────────────────────────────
 
@@ -175,16 +246,16 @@ class SecureChatGUI:
         self.username_var.set("")
         self.password_var.set("")
         self.login_frame.pack(fill="both", expand=True)
-        self.root.title("Secure Communication Suite")
+        self.root.title("Secure Chat")
         self.root.after(100, self.username_entry.focus)
 
     def show_chat(self, username: str) -> None:
         self.login_frame.pack_forget()
         self.header_label.config(text=f"  {username}")
-        self.root.title(f"Secure Chat — {username}")
+        self.root.title(f"SecureChat — {username}")
         self.chat_frame.pack(fill="both", expand=True)
-        self._system(f"Logged in as {username}")
-        self.root.after(100, self.message_entry.focus)
+        self._system(f"Session started as {username}")
+        self.root.after(100, self.message_box.focus)
         self.root.after(1000, self._poll_messages)
 
     # ── History helpers ───────────────────────────────────────────────────────
@@ -194,27 +265,28 @@ class SecureChatGUI:
 
     def _system(self, text: str) -> None:
         self.history.configure(state="normal")
-        self.history.insert("end", f"  {text}  \n", "system")
+        self.history.insert("end", f"\n  {text}  \n\n", "system")
         self.history.see("end")
         self.history.configure(state="disabled")
 
     def _append_sent(self, recipient: str, text: str) -> None:
         self.history.configure(state="normal")
-        self.history.insert("end", f"{self._now()}  ", "time")
-        self.history.insert("end", f"You → {recipient}  ", "sent")
-        self.history.insert("end", text + "\n")
+        self.history.insert("end", f"You → {recipient}\n", ("sent_bubble", "sent_name"))
+        self.history.insert("end", f"{text}\n", "sent_bubble")
+        self.history.insert("end", f"{self._now()}\n\n", ("sent_bubble", "time_sent"))
         self.history.see("end")
         self.history.configure(state="disabled")
 
     def _append_received(self, sender: str, text: str, integrity: str) -> None:
         self.history.configure(state="normal")
-        self.history.insert("end", f"{self._now()}  ", "time")
-        self.history.insert("end", f"{sender}  ", "recv")
-        self.history.insert("end", text)
+        self.history.insert("end", f"{sender}\n", ("recv_bubble", "recv_name"))
+        self.history.insert("end", f"{text}\n", "recv_bubble")
         if integrity == "verified":
-            self.history.insert("end", "  ✓\n", "ok")
+            self.history.insert("end", f"{self._now()} ✓\n\n", ("recv_bubble", "time_recv"))
+        elif integrity == "TAMPERED":
+            self.history.insert("end", f"{self._now()} ⚠ TAMPERED\n\n", ("recv_bubble", "tamper"))
         else:
-            self.history.insert("end", f"  ⚠ {integrity}\n", "tamper")
+            self.history.insert("end", f"{self._now()}\n\n", ("recv_bubble", "time_recv"))
         self.history.see("end")
         self.history.configure(state="disabled")
 
@@ -251,19 +323,40 @@ class SecureChatGUI:
             return
         self.show_login()
 
+    def _on_enter(self, event: tk.Event) -> str:
+        if not event.state & 0x1:
+            self.send_message()
+            return "break"
+        return ""
+
+    def _on_contact_select(self, _event: tk.Event) -> None:
+        sel = self.contacts_box.curselection()
+        if sel:
+            name = self.contacts_box.get(sel[0])
+            self.recipient_var.set(name)
+            self.recipient_label.config(text=f"To: {name}", fg=BG_HEADER,
+                                        font=FONT_BOLD)
+
+    def _add_contact(self) -> None:
+        name = self.new_contact_var.get().strip()
+        if name and name not in self.known_recipients:
+            self.known_recipients.append(name)
+            self.contacts_box.insert("end", name)
+        self.new_contact_var.set("")
+
     def send_message(self) -> None:
         recipient = self.recipient_var.get().strip()
-        text = self.message_var.get().strip()
+        text = self.message_box.get("1.0", "end").strip()
         if not recipient or not text:
             return
         try:
             self.client.send_message(recipient, text)
             if recipient not in self.known_recipients:
                 self.known_recipients.append(recipient)
-                self.recipient_combo["values"] = self.known_recipients
+                self.contacts_box.insert("end", recipient)
             self._append_sent(recipient, text)
-            self.message_var.set("")
-            self.status_var.set(f"Message sent to {recipient}")
+            self.message_box.delete("1.0", "end")
+            self.status_var.set(f"  Sent to {recipient} at {self._now()}")
         except Exception as exc:
             messagebox.showerror("Send", str(exc))
 
@@ -273,9 +366,11 @@ class SecureChatGUI:
         try:
             messages = self.client.fetch_messages()
             for msg in messages:
-                self._append_received(msg["from"], msg["text"], msg.get("integrity", "?"))
+                self._append_received(msg["from"], msg["text"],
+                                      msg.get("integrity", "?"))
             if messages:
-                self.status_var.set(f"Received {len(messages)} new message(s)")
+                self.status_var.set(
+                    f"  {len(messages)} new message(s) at {self._now()}")
         except Exception:
             pass
         self.root.after(1000, self._poll_messages)
