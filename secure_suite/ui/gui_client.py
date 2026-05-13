@@ -301,8 +301,12 @@ class SecureChatGUI:
 
     def login(self) -> None:
         username = self.username_var.get().strip()
+        password = self.password_var.get()
+        if not username or not password:
+            messagebox.showerror("Login", "Please enter both username and password.")
+            return
         try:
-            self.client.login(username, self.password_var.get())
+            self.client.login(username, password)
             self.password_var.set("")
             self.show_chat(username)
         except Exception as exc:
